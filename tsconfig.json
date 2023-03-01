@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+
+    "allowJs": false,
+    "target": "ESNext",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "resolveJsonModule": true,
+    "moduleResolution": "Node",
+
+
+    "allowSyntheticDefaultImports": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "forceConsistentCasingInFileNames": true,
+
+    "useDefineForClassFields": true,
+    "strict": true,
+  },
+  "include": ["src", "vite.config.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

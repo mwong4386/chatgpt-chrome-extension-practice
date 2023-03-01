@@ -1,0 +1,45 @@
+.header-title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: baseline;
+  cursor: default;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  line-height: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.header-title + .tooltip {
+  position: absolute;
+  top: 24px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 4px 8px;
+  transform: scale(0);
+  transition: 150ms transform;
+  transform-origin: top;
+}
+
+.header-title + .tooltip {
+  content: attr(data-tooltip);
+  word-break: break-all;
+  color: white;
+  border-radius: 0.3rem;
+  text-align: center;
+  width: max-content;
+  max-width: 100%;
+  background: #333;
+}
+
+.header-title:hover + .tooltip,
+.tooltip:hover {
+  transform: scale(1);
+  transition-delay: 1s;
+}

@@ -1,0 +1,20 @@
+{
+  "name": "chatgpt-helper",
+  "description": "This extension is made for demonstration purposes",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["activeTab", "scripting","storage"],
+  "action": {
+      "default_popup": "./src/popup/index.html",
+      "default_title":"discuss"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; script-src-elem 'self' 'unsafe-inline';"
+  },
+  "oauth2": {
+    "client_id": "123138859200-jtt0fa9vna3vjkjcm6u3p8jie78ptnt8.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  }
+}

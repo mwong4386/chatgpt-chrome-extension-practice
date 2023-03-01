@@ -1,0 +1,16 @@
+.button {
+  position: absolute;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 2px;
+  background-color: gray;
+  bottom: -2rem;
+  right: 24px;
+  transition: 0.3s ease-in-out;
+  visibility: hidden;
+}
+
+.button.visible {
+  bottom: 30px;
+  visibility: visible;
+}

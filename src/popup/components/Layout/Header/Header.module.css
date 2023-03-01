@@ -1,0 +1,38 @@
+.header {
+  display: flex;
+  flex: 1;
+  height: 24px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.app-name {
+  font-size: 1rem;
+  line-height: 24px;
+  font-weight: 600;
+  margin-left: 12px;
+  height: 100%;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.toggle-button {
+  border-radius: 0;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: row;
+  height: 24px;
+}
+
+.header-right {
+  height: 24px;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  overflow-x: hidden;
+  padding: 0 0.5rem;
+}

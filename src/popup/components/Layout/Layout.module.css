@@ -1,0 +1,20 @@
+.layout {
+  height: 600px;
+  width: 100%;
+  overflow: hidden;
+}
+.container {
+  width: 100%;
+  margin-top: 24px;
+}
+.header {
+  position: fixed;
+  top: 0;
+  height: 24px;
+  width: 100%;
+}
+.aside-main {
+  flex: 1;
+  width: 100%;
+  border-top: 1px solid rgb(127, 126, 126);
+}

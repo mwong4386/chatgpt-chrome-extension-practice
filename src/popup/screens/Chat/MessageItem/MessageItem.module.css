@@ -1,0 +1,27 @@
+.container {
+  width: 100%;
+}
+.messageitem-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.username {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.message {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}

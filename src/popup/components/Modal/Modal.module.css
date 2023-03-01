@@ -1,0 +1,21 @@
+.container {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  transition: all 0.3s ease;
+  background-color: #242424;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  visibility: hidden;
+}
+
+.container.active {
+  visibility: visible;
+}
+
+@media (prefers-color-scheme: light) {
+  .container {
+    background-color: #ffffff;
+  }
+}

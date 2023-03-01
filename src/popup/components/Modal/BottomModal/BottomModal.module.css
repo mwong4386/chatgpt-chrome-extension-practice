@@ -1,0 +1,7 @@
+.bottom-modal {
+  bottom: -100%;
+}
+
+.bottom-modal.active {
+  bottom: 0;
+}

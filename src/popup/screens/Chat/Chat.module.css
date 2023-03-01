@@ -1,0 +1,25 @@
+.rows {
+  display: flex;
+  flex-direction: column;
+  padding: 0 4%;
+  height: 576px;
+  border: 0 solid transparent; /* border: use it like padding without the scroll overflow */
+  align-items: center;
+  overflow-y: auto;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.composer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

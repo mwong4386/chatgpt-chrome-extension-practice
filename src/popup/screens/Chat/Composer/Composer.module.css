@@ -1,0 +1,31 @@
+.input-group {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+.inputbox {
+  display: flex;
+  flex: 1;
+}
+.submit-button {
+  background-color: "field";
+  border-radius: 0;
+}
+.error-message {
+  color: #f04545;
+  font-size: 0.75rem;
+  font-weight: 400;
+  margin-top: 0.25rem;
+}
+
+.submit-button:hover:not([disabled]) path {
+  fill: #64ff8d;
+}
+
+.submit-button:disabled {
+  cursor: not-allowed;
+}
+
+.submit-button:disabled path {
+  fill: #696969;
+}
