@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { calculateEmbeddings, embeddingMapping } from "../services/chatgpt";
+import {
+  calculateEmbeddingsForLongParagraph,
+  embeddingMapping,
+} from "../services/chatgpt";
 import { hash } from "../utils/hash";
 
 const getPageContent = async () => {
@@ -23,7 +26,6 @@ const useChatGPT = () => {
   const [mapping, setMapping] = useState<embeddingMapping[] | undefined>(
     undefined
   );
-
   useEffect(() => {
     getPageContent().then((content) => {
       if (content === undefined) return;
@@ -33,7 +35,7 @@ const useChatGPT = () => {
           setMapping(result[hashedContent]);
           return;
         } else {
-          calculateEmbeddings(content).then((embeddings) => {
+          calculateEmbeddingsForLongParagraph(content).then((embeddings) => {
             setMapping(embeddings);
             chrome.storage.local.set({
               [hashedContent]: embeddings,

@@ -18,7 +18,7 @@ const Chat = ({}: props) => {
   const [scrollToBottomVisible, setScrollToBottomVisible] =
     useState<boolean>(false);
   const { currentPageEmbedding } = useChatGPT();
-
+  const [temperature, setTemperature] = useState<number>(0); // 0 is less chaos, 1 is more chaos
   useEffect(() => {
     if (!composerRef.current) return;
     const resizeObserver = new ResizeObserver(() => {
@@ -30,7 +30,7 @@ const Chat = ({}: props) => {
   }, []);
 
   const handleScroll = (e: any) => {
-    setScrollToBottomVisible(e.target.scrollTop < -50);
+    setScrollToBottomVisible(e.target.scrollTop < -50); // show only if scrolled up more than 50px
   };
 
   const onSubmitMessage = (message: string) => {
@@ -44,18 +44,30 @@ const Chat = ({}: props) => {
         createdByDisplayName: "You",
       },
     ]);
-    answerQuestion(message, currentPageEmbedding).then((answer) => {
-      if (answer === undefined) return;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: uuid(),
-          message: answer,
-          createdAt: new Date(),
-          createdByDisplayName: "Chatbot",
-        },
-      ]);
-    });
+    answerQuestion(message, currentPageEmbedding)
+      .then((answer) => {
+        if (answer === undefined) return;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuid(),
+            message: answer,
+            createdAt: new Date(),
+            createdByDisplayName: "Chatbot",
+          },
+        ]);
+      })
+      .catch((e) => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuid(),
+            message: `Error: ${e.message}`,
+            createdAt: new Date(),
+            createdByDisplayName: "Chatbot",
+          },
+        ]);
+      });
   };
 
   const scrollToBottom = () => {
@@ -92,6 +104,7 @@ const Chat = ({}: props) => {
         <Composer
           placeholder="Ask a question about this page"
           onSubmit={onSubmitMessage}
+          isDisabled={currentPageEmbedding === undefined}
         ></Composer>
       </div>
     </>
