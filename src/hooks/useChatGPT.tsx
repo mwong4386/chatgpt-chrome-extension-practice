@@ -12,14 +12,25 @@ const getPageContent = async () => {
   });
   let result = undefined;
   try {
-    [{ result }] = await chrome.scripting.executeScript({
+    result = await chrome.scripting.executeScript({
       target: { tabId: tab.id ?? 0 },
-      func: () => document.documentElement.innerText,
+      func: () => {
+        return {
+          mainDocText: document.body.innerText,
+          iframeDocText: Array.from(
+            document.querySelectorAll("iframe, frame")
+          ).reduce(
+            (acc, cur: any) =>
+              acc + "\n" + cur.contentDocument?.body.innerText ?? "",
+            ""
+          ),
+        };
+      },
     });
   } catch (e) {
-    return result;
+    return "";
   }
-  return result;
+  return result[0].result.mainDocText + "\n" + result[0].result.iframeDocText;
 };
 
 const useChatGPT = () => {

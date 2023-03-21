@@ -1,6 +1,7 @@
 import { encode } from "@nem035/gpt-3-encoder";
 import { Configuration, CreateEmbeddingRequestInput, OpenAIApi } from "openai";
-import { chatGPTConfig, chatGPTInputParam } from "../configs/chatGPTConfig";
+import { chatGPTConfig } from "../configs/chatGPTConfig";
+import { chatGPTInputParam } from "../configs/chatGPTInputParam";
 
 const configuration = new Configuration(chatGPTConfig);
 const openai = new OpenAIApi(configuration);
@@ -10,12 +11,6 @@ export interface embeddingMapping {
   embedding: number[];
 }
 
-export interface completeConfig {
-  model?: string;
-  temperature?: number;
-  max_tokens?: number;
-}
-
 interface similarity {
   sequence: number;
   similarity: number;
@@ -23,15 +18,17 @@ interface similarity {
 }
 
 export const calculateEmbeddingsForLongParagraph = async (text: string) => {
-  const chunks = splitTextToChunks(formatText(text));
+  const chunks = splitTextToChunks(
+    formatText(text),
+    chatGPTInputParam.chunkMaxTokenSize
+  );
   const embeddings = await createEmbedding(chunks);
   return mapChunkWithEmbedding(chunks, embeddings);
 };
 
 export const answerQuestion = async (
   question: string,
-  pageEmbeddings: embeddingMapping[],
-  config?: completeConfig
+  pageEmbeddings: embeddingMapping[]
 ) => {
   //find the embedding of the question
   const questionEmbedding = await createEmbedding(question);
@@ -42,8 +39,7 @@ export const answerQuestion = async (
   );
   const context = formContext(similarities, chatGPTInputParam.contextMaxToken);
   const prompt = `Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: ${context}\n\n---\n\nQuestion: ${question}\nAnswer:`;
-  //const prompt = `Answer the question base on the Content captured from ca.indeed, which is a job board website \n Content: ${context}\nQuestion: ${question}\nAnswer:`;
-  return await createCompletion(prompt, config);
+  return await createCompletion(prompt);
 };
 
 const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
@@ -54,12 +50,12 @@ const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
   return response.data.data.map((item) => item.embedding); //returns an array of embeddings for the input
 };
 
-const createCompletion = async (prompt: string, config?: completeConfig) => {
+const createCompletion = async (prompt: string) => {
   const response = await openai.createCompletion({
     model: chatGPTInputParam.completionModel,
     prompt: prompt,
     temperature: chatGPTInputParam.temperature, //0 is determine, 1 is random
-    max_tokens: config?.max_tokens ?? 200,
+    max_tokens: chatGPTInputParam.completionMaxTokens,
   });
   return response.data.choices[0].text;
 };
@@ -73,7 +69,7 @@ const formatText = (text: string) => {
 };
 
 //approximate embedding size is 1 tokens ~ 4 characters, try 500 tokens ~ 2000 characters
-const splitTextToChunks = (text: string, chunkMaxTokenSize: number = 500) => {
+const splitTextToChunks = (text: string, chunkMaxTokenSize: number) => {
   const txtArray = text.split("\n");
   const chunks = [txtArray[0]];
   for (let i = 1; i < txtArray.length; i++) {
@@ -153,13 +149,6 @@ const formContext = (similarities: similarity[], maxTokenSize: number) => {
         .sort((a, b) => a.sequence - b.sequence) //the chunks should come with its initial order, although some of the unimportant piece missing
         .map((item) => item.chunk)
         .join(". ");
-};
-
-const formContextInMultipleChunksFormat = (text: string, maxLength: number) => {
-  const chunks = splitTextToChunks(text, maxLength);
-  if (chunks.length === 0) return "";
-
-  chunks[0] = ``;
 };
 
 const getTokenSize = (text: string) => {

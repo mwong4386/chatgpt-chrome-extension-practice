@@ -18,7 +18,6 @@ const Chat = ({}: props) => {
   const [scrollToBottomVisible, setScrollToBottomVisible] =
     useState<boolean>(false);
   const { currentPageEmbedding } = useChatGPT();
-  const [temperature, setTemperature] = useState<number>(0); // 0 is less chaos, 1 is more chaos
   useEffect(() => {
     if (!composerRef.current) return;
     const resizeObserver = new ResizeObserver(() => {
