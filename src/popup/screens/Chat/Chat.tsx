@@ -21,6 +21,7 @@ const Chat = ({}: props) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { currentPageEmbedding } = useChatGPT();
   const { prompt, temperature } = useSetting();
+
   useEffect(() => {
     if (!composerRef.current) return;
     const resizeObserver = new ResizeObserver(() => {

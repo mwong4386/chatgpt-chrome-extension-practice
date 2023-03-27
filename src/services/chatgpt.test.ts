@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateMaxResponseLength,
   cosineSimilarity,
+  createChatCompletion,
   createCompletion,
   createEmbedding,
   getTokenSize,
@@ -70,5 +71,12 @@ describe("calculateMaxResponseLength", () => {
   it("should return the max token of the model provide minus the prompt length", () => {
     const result = calculateMaxResponseLength("hello world this is a prompt");
     expect(result).toBe(4090);
+  });
+});
+
+describe("createChatCompletion", () => {
+  it("should return a text", async () => {
+    const result = await createChatCompletion("return me hello world", 1);
+    expect(typeof result).toBe("string");
   });
 });

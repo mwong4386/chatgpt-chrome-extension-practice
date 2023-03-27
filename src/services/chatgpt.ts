@@ -63,7 +63,7 @@ export const answerQuestion = async (
   const formatPrompt = prompt
     .replace("{{context}}", context)
     .replace("{{question}}", question);
-  return await createCompletion(formatPrompt, temperature);
+  return await createChatCompletion(formatPrompt, temperature);
 };
 
 export const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
@@ -80,7 +80,7 @@ export const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
 };
 
 export const calculateMaxResponseLength = (prompt: string): number => {
-  return chatGPTInputParam.completionMaxTokens - getTokenSize(prompt);
+  return 4096 - getTokenSize(prompt);
 };
 
 export const createCompletion = async (prompt: string, temperature: number) => {
@@ -88,9 +88,22 @@ export const createCompletion = async (prompt: string, temperature: number) => {
     model: chatGPTInputParam.completionModel,
     prompt: prompt,
     temperature: temperature, //0 is determine, 1 is random
-    max_tokens: calculateMaxResponseLength(prompt),
+    max_tokens: chatGPTInputParam.completionMaxTokens, //calculateMaxResponseLength(prompt),
   });
   return response.data.choices[0].text;
+};
+
+export const createChatCompletion = async (
+  prompt: string,
+  temperature: number
+) => {
+  const response = await openai.createChatCompletion({
+    model: chatGPTInputParam.chatModel,
+    messages: [{ role: "user", content: prompt }],
+    temperature: temperature, //0 is determine, 1 is random
+    max_tokens: chatGPTInputParam.completionMaxTokens, //calculateMaxResponseLength(prompt),
+  });
+  return response.data.choices[0].message?.content;
 };
 
 //approximate embedding size is 1 tokens ~ 4 characters, try 500 tokens ~ 2000 characters

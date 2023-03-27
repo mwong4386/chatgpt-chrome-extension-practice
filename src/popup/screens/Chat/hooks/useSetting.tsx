@@ -3,8 +3,12 @@ import { chatGPTInputParam } from "../../../../configs/chatGPTInputParam";
 import useHeader from "../../../hooks/useHeader";
 import Setting from "../Setting/Setting";
 
+enum Mode {
+  completion = "zero-shot",
+  // chat = "chat",
+}
 const useSetting = () => {
-  const { renderAsidePanelMainContent } = useHeader();
+  const { renderAsidePanelMainContent, renderCenterHeader } = useHeader();
   const [temperature, setTemperature] = useState<number>(
     chatGPTInputParam.temperature
   );
@@ -15,6 +19,7 @@ const useSetting = () => {
       temperature: +e.target.value,
     });
   };
+  const [mode, setMode] = useState<Mode>(Mode.completion);
   const prompt_onChange = (e: any) => {
     setPrompt(e.target.value);
     chrome.storage.local.set({
@@ -45,11 +50,25 @@ const useSetting = () => {
   }, [temperature, prompt]);
   useEffect(() => {
     if (renderAsidePanelMainContent === null) return;
-    console.log(settingLayout);
     renderAsidePanelMainContent(settingLayout);
   }, [renderAsidePanelMainContent, settingLayout]);
 
+  useEffect(() => {
+    if (renderCenterHeader === null) return;
+    renderCenterHeader(
+      <select
+        style={{
+          backgroundColor: "#242424",
+          border: "transparent",
+          fontWeight: 600,
+        }}
+      >
+        {Object.keys(Mode).map((key) => {
+          return <option value={key}>{Mode[key as keyof typeof Mode]}</option>;
+        })}
+      </select>
+    );
+  }, [renderCenterHeader]);
   return { temperature, prompt };
 };
-
 export default useSetting;
