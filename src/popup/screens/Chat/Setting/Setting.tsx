@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import styles from "./Setting.module.css";
 interface props {
   temperature: number;
   temperature_onChange: (e: any) => void;
@@ -20,17 +20,11 @@ const Setting = ({
   }, [initialPrompt]);
 
   return (
-    <div style={{ padding: "8px 8px" }}>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignContent: "center",
-          fontSize: "0.8rem",
-        }}
-      >
+    <div className={styles["container"]}>
+      <div className={styles["item-container"]}>
         <label htmlFor="prompt">Prompt</label>
         <textarea
+          className={styles["prompt-textarea"]}
           rows={5}
           value={prompt}
           onChange={(e) => {
@@ -39,14 +33,7 @@ const Setting = ({
           onBlur={prompt_onChange}
         ></textarea>
       </div>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignContent: "center",
-          fontSize: "0.8rem",
-        }}
-      >
+      <div className={styles["item-container"]}>
         <label htmlFor="temperature">Temperature</label>
 
         <input

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateMaxResponseLength,
+  cosineSimilarity,
   createCompletion,
   createEmbedding,
   getTokenSize,
@@ -54,5 +56,19 @@ describe("splitTextToChunks", () => {
     expect(result).to.eql([
       { chunk: "a little long first sentence\nI am the second line", size: 11 },
     ]);
+  });
+});
+
+describe("cosineSimilarity", () => {
+  it("should return the cosine similarity", () => {
+    const result = cosineSimilarity([3, 2, 0, 5], [1, 0, 0, 0]);
+    expect(result).toBeCloseTo(0.48666, 5);
+  });
+});
+
+describe("calculateMaxResponseLength", () => {
+  it("should return the max token of the model provide minus the prompt length", () => {
+    const result = calculateMaxResponseLength("hello world this is a prompt");
+    expect(result).toBe(4090);
   });
 });

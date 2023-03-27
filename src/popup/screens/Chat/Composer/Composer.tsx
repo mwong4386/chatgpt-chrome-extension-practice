@@ -1,6 +1,7 @@
-import MultilineInputbox from "../../../../components/MultilineInputbox/MultilineInputbox";
-import styles from "./Composer.module.css";
 import { useForm } from "react-hook-form";
+import MultilineInputbox from "../../../../components/MultilineInputbox/MultilineInputbox";
+import { miscellaneous } from "../../../../configs/miscellaneous";
+import styles from "./Composer.module.css";
 interface props {
   placeholder?: string;
   onSubmit?: (text: string) => void;
@@ -33,6 +34,7 @@ const Composer = (props: props) => {
           <MultilineInputbox
             {...register("message", { required: "Input your message" })}
             maxRows={5}
+            maxLength={miscellaneous.componserMaxLength}
             placeholder={props.placeholder}
             disabled={props.isDisabled || isSubmitting}
           ></MultilineInputbox>

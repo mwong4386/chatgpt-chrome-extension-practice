@@ -79,12 +79,16 @@ export const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
   }
 };
 
+export const calculateMaxResponseLength = (prompt: string): number => {
+  return chatGPTInputParam.completionMaxTokens - getTokenSize(prompt);
+};
+
 export const createCompletion = async (prompt: string, temperature: number) => {
   const response = await openai.createCompletion({
     model: chatGPTInputParam.completionModel,
     prompt: prompt,
     temperature: temperature, //0 is determine, 1 is random
-    max_tokens: chatGPTInputParam.completionMaxTokens,
+    max_tokens: calculateMaxResponseLength(prompt),
   });
   return response.data.choices[0].text;
 };
@@ -109,17 +113,18 @@ export const splitTextToChunks = (
   return chunks;
 };
 
-const cosineSimilarity = (vectorA: number[], vectorB: number[]) => {
-  // Calculate dot product of vectorA and vectorB
+export const cosineSimilarity = (
+  vectorA: number[],
+  vectorB: number[]
+): number => {
   let dotProduct = 0;
-  for (let i = 0; i < vectorA.length; i++) {
-    dotProduct += vectorA[i] * vectorB[i];
-  }
-
-  // Calculate magnitude of vectorA and vectorB
   let magnitudeA = 0;
   let magnitudeB = 0;
+
   for (let i = 0; i < vectorA.length; i++) {
+    // Calculate dot product of vectorA and vectorB
+    // Calculate magnitude of vectorA and vectorB
+    dotProduct += vectorA[i] * vectorB[i];
     magnitudeA += vectorA[i] * vectorA[i];
     magnitudeB += vectorB[i] * vectorB[i];
   }
