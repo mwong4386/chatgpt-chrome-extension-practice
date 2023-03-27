@@ -8,6 +8,7 @@ import Composer from "./Composer/Composer";
 import EmptyMessages from "./EmptyMessages/EmptyMessages";
 import MessageItem from "./MessageItem/MessageItem";
 import ScrollToBtn from "./ScrollToBtn/ScrollToBtn";
+import useSetting from "./hooks/useSetting";
 
 interface props {}
 
@@ -17,7 +18,9 @@ const Chat = ({}: props) => {
   const rowsRef = useRef<HTMLDivElement>(null);
   const [scrollToBottomVisible, setScrollToBottomVisible] =
     useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { currentPageEmbedding } = useChatGPT();
+  const { prompt, temperature } = useSetting();
   useEffect(() => {
     if (!composerRef.current) return;
     const resizeObserver = new ResizeObserver(() => {
@@ -34,6 +37,7 @@ const Chat = ({}: props) => {
 
   const onSubmitMessage = (message: string) => {
     if (currentPageEmbedding === undefined) return;
+    setIsSubmitting(true);
     setMessages((prev) => [
       ...prev,
       {
@@ -43,7 +47,7 @@ const Chat = ({}: props) => {
         createdByDisplayName: "You",
       },
     ]);
-    answerQuestion(message, currentPageEmbedding)
+    answerQuestion(message, currentPageEmbedding, prompt, temperature)
       .then((answer) => {
         if (answer === undefined) return;
         setMessages((prev) => [
@@ -55,6 +59,7 @@ const Chat = ({}: props) => {
             createdByDisplayName: "Chatbot",
           },
         ]);
+        setIsSubmitting(false);
       })
       .catch((e) => {
         setMessages((prev) => [
@@ -80,7 +85,6 @@ const Chat = ({}: props) => {
     <>
       <div ref={rowsRef} className={styles["rows"]} onScroll={handleScroll}>
         {messages.length === 0 && <EmptyMessages />}
-
         <>
           {messages.map((message) => {
             return (
@@ -99,11 +103,12 @@ const Chat = ({}: props) => {
           />
         </>
       </div>
+
       <div ref={composerRef} className={styles["composer"]}>
         <Composer
           placeholder="Ask a question about this page"
           onSubmit={onSubmitMessage}
-          isDisabled={currentPageEmbedding === undefined}
+          isDisabled={currentPageEmbedding === undefined || isSubmitting}
         ></Composer>
       </div>
     </>

@@ -11,6 +11,11 @@ export interface embeddingMapping {
   embedding: number[];
 }
 
+interface chunkAndSize {
+  chunk: string;
+  size: number;
+}
+
 interface similarity {
   sequence: number;
   similarity: number;
@@ -18,17 +23,34 @@ interface similarity {
 }
 
 export const calculateEmbeddingsForLongParagraph = async (text: string) => {
-  const chunks = splitTextToChunks(
-    formatText(text),
-    chatGPTInputParam.chunkMaxTokenSize
-  );
-  const embeddings = await createEmbedding(chunks);
-  return mapChunkWithEmbedding(chunks, embeddings);
+  const result: embeddingMapping[] = [];
+  const chunks = splitTextToChunks(text, chatGPTInputParam.chunkMaxTokenSize);
+  let chunksToBeSent: string[] = [];
+  let size = 0;
+  for (let i = 0; i < chunks.length; i++) {
+    if (chunks[i].size > chatGPTInputParam.contextMaxToken) continue; //skip the chunk if it is too long
+    if (chunks[i].size + size < 8196) {
+      chunksToBeSent.push(chunks[i].chunk);
+      size += chunks[i].size;
+    } else {
+      const embeddings = await createEmbedding(chunksToBeSent);
+      result.push(...mapChunkWithEmbedding(chunksToBeSent, embeddings));
+      chunksToBeSent = [chunks[i].chunk];
+      size = chunks[i].size;
+    }
+  }
+  if (chunksToBeSent.length > 0) {
+    const embeddings = await createEmbedding(chunksToBeSent);
+    result.push(...mapChunkWithEmbedding(chunksToBeSent, embeddings));
+  }
+  return result;
 };
 
 export const answerQuestion = async (
   question: string,
-  pageEmbeddings: embeddingMapping[]
+  pageEmbeddings: embeddingMapping[],
+  prompt: string,
+  temperature: number
 ) => {
   //find the embedding of the question
   const questionEmbedding = await createEmbedding(question);
@@ -38,46 +60,50 @@ export const answerQuestion = async (
     pageEmbeddings
   );
   const context = formContext(similarities, chatGPTInputParam.contextMaxToken);
-  const prompt = `Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: ${context}\n\n---\n\nQuestion: ${question}\nAnswer:`;
-  return await createCompletion(prompt);
+  const formatPrompt = prompt
+    .replace("{{context}}", context)
+    .replace("{{question}}", question);
+  return await createCompletion(formatPrompt, temperature);
 };
 
-const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
-  const response = await openai.createEmbedding({
-    model: chatGPTInputParam.embeddingModel,
-    input: input,
-  });
-  return response.data.data.map((item) => item.embedding); //returns an array of embeddings for the input
+export const createEmbedding = async (input: CreateEmbeddingRequestInput) => {
+  try {
+    const response = await openai.createEmbedding({
+      model: chatGPTInputParam.embeddingModel,
+      input: input,
+    });
+    return response.data.data.map((item) => item.embedding); //returns an array of embeddings for the input
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 };
 
-const createCompletion = async (prompt: string) => {
+export const createCompletion = async (prompt: string, temperature: number) => {
   const response = await openai.createCompletion({
     model: chatGPTInputParam.completionModel,
     prompt: prompt,
-    temperature: chatGPTInputParam.temperature, //0 is determine, 1 is random
+    temperature: temperature, //0 is determine, 1 is random
     max_tokens: chatGPTInputParam.completionMaxTokens,
   });
   return response.data.choices[0].text;
 };
 
-//remove line breaks and extra spaces
-const formatText = (text: string) => {
-  return text
-    .replace(/(\r\n|\n|\r)/gm, "\n") //removes all three types of line breaks
-    .replace(/(\s\s+)/gm, " ")
-    .trim();
-};
-
 //approximate embedding size is 1 tokens ~ 4 characters, try 500 tokens ~ 2000 characters
-const splitTextToChunks = (text: string, chunkMaxTokenSize: number) => {
-  const txtArray = text.split("\n");
-  const chunks = [txtArray[0]];
+export const splitTextToChunks = (
+  text: string,
+  chunkMaxTokenSize: number
+): chunkAndSize[] => {
+  const txtArray = text.split(/\r?\n/);
+  const chunks = [{ chunk: txtArray[0], size: getTokenSize(txtArray[0]) }];
   for (let i = 1; i < txtArray.length; i++) {
-    const chunk = chunks[chunks.length - 1];
-    if (getTokenSize(chunk + "\n" + txtArray[i]) < chunkMaxTokenSize) {
-      chunks[chunks.length - 1] = chunk + "\n" + txtArray[i];
+    const chunk = chunks[chunks.length - 1].chunk;
+    const size = getTokenSize(chunk + "\n" + txtArray[i]);
+    if (size < chunkMaxTokenSize) {
+      chunks[chunks.length - 1].chunk = chunk + "\n" + txtArray[i];
+      chunks[chunks.length - 1].size = size;
     } else {
-      chunks.push(txtArray[i]);
+      chunks.push({ chunk: txtArray[i], size: getTokenSize(txtArray[i]) });
     }
   }
   return chunks;
@@ -151,6 +177,6 @@ const formContext = (similarities: similarity[], maxTokenSize: number) => {
         .join(". ");
 };
 
-const getTokenSize = (text: string) => {
+export const getTokenSize = (text: string) => {
   return encode(text).length;
 };
