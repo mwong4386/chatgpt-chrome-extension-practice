@@ -48,6 +48,7 @@ const useChatGPT = () => {
         } else {
           calculateEmbeddingsForLongParagraph(content).then((embeddings) => {
             setMapping(embeddings);
+            //TODO may change it to vector database
             chrome.storage.local.set({
               [hashedContent]: embeddings,
             });
