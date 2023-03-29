@@ -102,6 +102,6 @@ const useSetting = () => {
       </select>
     );
   }, [renderCenterHeader]);
-  return { temperature, prompt, mode };
+  return { temperature, prompt, mode, promptVariables };
 };
 export default useSetting;

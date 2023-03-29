@@ -2,6 +2,7 @@ import { encode } from "@nem035/gpt-3-encoder";
 import { Configuration, CreateEmbeddingRequestInput, OpenAIApi } from "openai";
 import { chatGPTConfig } from "../configs/chatGPTConfig";
 import { chatGPTInputParam } from "../configs/chatGPTInputParam";
+import { promptVariable } from "../popup/screens/Chat/hooks/useSetting";
 
 const configuration = new Configuration(chatGPTConfig);
 const openai = new OpenAIApi(configuration);
@@ -50,7 +51,8 @@ export const answerQuestion = async (
   question: string,
   pageEmbeddings: embeddingMapping[],
   prompt: string,
-  temperature: number
+  temperature: number,
+  promptVariables: promptVariable[]
 ) => {
   //find the embedding of the question
   const questionEmbedding = await createEmbedding(question);
@@ -60,9 +62,15 @@ export const answerQuestion = async (
     pageEmbeddings
   );
   const context = formContext(similarities, chatGPTInputParam.contextMaxToken);
-  const formatPrompt = prompt
+  let formatPrompt = prompt
     .replace("{{context}}", context)
     .replace("{{question}}", question);
+  for (let i = 0; i < promptVariables.length; i++) {
+    formatPrompt = formatPrompt.replace(
+      `{{${promptVariables[i].name}}}`,
+      promptVariables[i].value
+    );
+  }
   return await createChatCompletion(formatPrompt, temperature);
 };
 

@@ -20,7 +20,7 @@ const Chat = ({}: props) => {
     useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { currentPageEmbedding } = useChatGPT();
-  const { prompt, temperature } = useSetting();
+  const { prompt, temperature, promptVariables } = useSetting();
 
   useEffect(() => {
     if (!composerRef.current) return;
@@ -48,7 +48,13 @@ const Chat = ({}: props) => {
         createdByDisplayName: "You",
       },
     ]);
-    answerQuestion(message, currentPageEmbedding, prompt, temperature)
+    answerQuestion(
+      message,
+      currentPageEmbedding,
+      prompt,
+      temperature,
+      promptVariables
+    )
       .then((answer) => {
         if (answer === undefined) return;
         setMessages((prev) => [
