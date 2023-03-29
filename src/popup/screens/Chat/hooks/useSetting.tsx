@@ -7,6 +7,13 @@ enum Mode {
   completion = "zero-shot",
   // chat = "chat",
 }
+
+export interface promptVariable {
+  key: string;
+  name: string;
+  value: string;
+}
+
 const useSetting = () => {
   const { renderAsidePanelMainContent, renderCenterHeader } = useHeader();
   const [temperature, setTemperature] = useState<number>(
@@ -26,15 +33,39 @@ const useSetting = () => {
       prompt: e.target.value,
     });
   };
+
+  const [promptVariables, setPromptVariables] = useState<promptVariable[]>([]);
+
   useEffect(() => {
-    chrome.storage.local.get(["temperature", "prompt"], (result) => {
-      if (result.temperature !== undefined) {
-        setTemperature(+result.temperature);
+    const listener = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      namespace: "sync" | "local" | "managed" | "session"
+    ) => {
+      if ("prompt_variables" in changes) {
+        setPromptVariables(changes["prompt_variables"].newValue);
       }
-      if (result.prompt !== undefined) {
-        setPrompt(result.prompt);
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => {
+      chrome.storage.onChanged.removeListener(listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    chrome.storage.local.get(
+      ["temperature", "prompt", "prompt_variables"],
+      (result) => {
+        if (result.temperature !== undefined) {
+          setTemperature(+result.temperature);
+        }
+        if (result.prompt !== undefined) {
+          setPrompt(result.prompt);
+        }
+        if (result.prompt_variables !== undefined) {
+          setPromptVariables(result.prompt_variables);
+        }
       }
-    });
+    );
   }, []);
 
   const settingLayout = useMemo(() => {
@@ -45,9 +76,11 @@ const useSetting = () => {
         initialPrompt={prompt}
         prompt_onChange={prompt_onChange}
         setPrompt={setPrompt}
+        initialPomptVariables={promptVariables}
       ></Setting>
     );
-  }, [temperature, prompt]);
+  }, [temperature, prompt, promptVariables]);
+
   useEffect(() => {
     if (renderAsidePanelMainContent === null) return;
     renderAsidePanelMainContent(settingLayout);
@@ -69,6 +102,6 @@ const useSetting = () => {
       </select>
     );
   }, [renderCenterHeader]);
-  return { temperature, prompt };
+  return { temperature, prompt, mode };
 };
 export default useSetting;
