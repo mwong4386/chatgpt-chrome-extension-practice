@@ -51,7 +51,7 @@ const Chat = ({}: props) => {
     answerQuestion(
       message,
       currentPageEmbedding,
-      prompt,
+      prompt.prompt,
       temperature,
       promptVariables
     )

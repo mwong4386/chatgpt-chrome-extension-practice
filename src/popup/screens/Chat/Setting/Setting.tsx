@@ -1,36 +1,90 @@
 import { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
-import { promptVariable } from "../hooks/useSetting";
+import { Prompt, promptVariable } from "../hooks/useSetting";
 import styles from "./Setting.module.css";
 
 interface props {
   temperature: number;
-  temperature_onChange: (e: any) => void;
-  initialPrompt: string;
-  prompt_onChange: (e: any) => void;
-  setPrompt: React.Dispatch<React.SetStateAction<string>>;
+  initialPrompt: Prompt;
+  // setPrompt: React.Dispatch<React.SetStateAction<string>>;
   initialPomptVariables: promptVariable[];
+  promptList: Prompt[];
 }
 
 const Setting = ({
   temperature,
-  temperature_onChange,
   initialPrompt,
-  prompt_onChange,
   initialPomptVariables,
+  promptList,
 }: props) => {
-  const [prompt, setPrompt] = useState<string>(initialPrompt);
   const [promptVariables, setPromptVariables] = useState<promptVariable[]>(
     initialPomptVariables
   );
+  const [promptSelect, setPromptSelect] = useState<Prompt>(initialPrompt); //it hold the temporary value of the prompt
+
   useEffect(() => {
-    setPrompt(initialPrompt); //in case initialPrompt is changed
+    setPromptSelect(initialPrompt); //in case initialPrompt is changed
   }, [initialPrompt]);
 
   useEffect(() => {
     setPromptVariables(initialPomptVariables); //in case initialPomptVariables is changed
   }, [initialPomptVariables]);
 
+  const savePrompt = () => {
+    if (promptSelect.key === "-1") {
+      const newKey = uuid();
+      const newPrompt = {
+        key: newKey,
+        name: promptSelect.name,
+        prompt: promptSelect.prompt,
+      };
+      const newPromptList = [...promptList, newPrompt];
+      chrome.storage.local.set({
+        prompt: newPrompt,
+        promptList: newPromptList,
+      });
+    } else {
+      const newPromptList = promptList.map((prompt) => {
+        if (prompt.key === promptSelect.key) {
+          return {
+            ...prompt,
+            name: promptSelect.name,
+            prompt: promptSelect.prompt,
+          };
+        }
+        return prompt;
+      });
+      chrome.storage.local.set({
+        prompt: promptSelect,
+        promptList: newPromptList,
+      });
+    }
+  };
+
+  const changePrompt = (e: any) => {
+    setPromptSelect((prev) => {
+      return { ...prev, [e.target.name]: e.target.value };
+    });
+  };
+
+  const promptOption_onChange = (e: any) => {
+    if (e.target.value === "-1") {
+      setPromptSelect({ key: "-1", name: "", prompt: "" }); // it is temporary value until it is saved
+    } else {
+      const promptFound = promptList.find(
+        (prompt) => prompt.key === e.target.value
+      );
+      if (promptFound) {
+        chrome.storage.local.set({ prompt: promptFound }); // change the prompt used
+      }
+    }
+  };
+
+  const temperature_onChange = (e: any) => {
+    chrome.storage.local.set({
+      temperature: +e.target.value,
+    });
+  };
   const addPromptVariable = () => {
     setPromptVariables([
       ...promptVariables,
@@ -43,21 +97,47 @@ const Setting = ({
       promptVariables.filter((variable) => variable.key !== key)
     );
   };
+
   const savePromptVariable = () => {
     chrome.storage.local.set({ prompt_variables: promptVariables });
   };
+
   return (
     <div className={styles["container"]}>
       <div className={styles["item-container"]}>
         <label htmlFor="prompt">Prompt</label>
+        <select onChange={promptOption_onChange}>
+          {promptList.map((prompt, id) => {
+            return (
+              <option
+                value={prompt.key}
+                selected={promptSelect.key === prompt.key}
+              >
+                {prompt.name}
+              </option>
+            );
+          })}
+          <option value="-1">Add new Prompt</option>
+        </select>
+      </div>
+      <div className={styles["item-container"]}>
+        <input
+          name={"name"}
+          type="text"
+          value={promptSelect.name}
+          placeholder="name of the prompt"
+          onChange={changePrompt}
+        />
+        <button onClick={savePrompt}>Save</button>
+      </div>
+      <div className={styles["item-container"]}>
         <textarea
+          id="prompt"
+          name="prompt"
           className={styles["prompt-textarea"]}
           rows={5}
-          value={prompt}
-          onChange={(e) => {
-            setPrompt(e.target.value);
-          }}
-          onBlur={prompt_onChange}
+          value={promptSelect.prompt}
+          onChange={changePrompt}
         ></textarea>
       </div>
       <div className={styles["item-container"]}>

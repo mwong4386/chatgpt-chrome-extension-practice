@@ -8,6 +8,12 @@ enum Mode {
   // chat = "chat",
 }
 
+export interface Prompt {
+  key: string; // -1 means system default
+  name: string;
+  prompt: string;
+}
+
 export interface promptVariable {
   key: string;
   name: string;
@@ -19,21 +25,14 @@ const useSetting = () => {
   const [temperature, setTemperature] = useState<number>(
     chatGPTInputParam.temperature
   );
-  const [prompt, setPrompt] = useState<string>(chatGPTInputParam.prompt);
-  const temperature_onChange = (e: any) => {
-    setTemperature(+e.target.value);
-    chrome.storage.local.set({
-      temperature: +e.target.value,
-    });
-  };
   const [mode, setMode] = useState<Mode>(Mode.completion);
-  const prompt_onChange = (e: any) => {
-    setPrompt(e.target.value);
-    chrome.storage.local.set({
-      prompt: e.target.value,
-    });
-  };
 
+  const [prompt, setPrompt] = useState<Prompt>({
+    key: "-1",
+    name: "system default",
+    prompt: chatGPTInputParam.prompt,
+  });
+  const [promptList, setPromptList] = useState<Prompt[]>([]);
   const [promptVariables, setPromptVariables] = useState<promptVariable[]>([]);
 
   useEffect(() => {
@@ -44,6 +43,15 @@ const useSetting = () => {
       if ("prompt_variables" in changes) {
         setPromptVariables(changes["prompt_variables"].newValue);
       }
+      if ("promptList" in changes) {
+        setPromptList(changes["promptList"].newValue);
+      }
+      if ("prompt" in changes) {
+        setPrompt(changes["prompt"].newValue);
+      }
+      if ("temperature" in changes) {
+        setTemperature(changes["temperature"].newValue);
+      }
     };
     chrome.storage.onChanged.addListener(listener);
     return () => {
@@ -53,7 +61,7 @@ const useSetting = () => {
 
   useEffect(() => {
     chrome.storage.local.get(
-      ["temperature", "prompt", "prompt_variables"],
+      ["temperature", "prompt", "prompt_variables", "promptList"],
       (result) => {
         if (result.temperature !== undefined) {
           setTemperature(+result.temperature);
@@ -64,6 +72,9 @@ const useSetting = () => {
         if (result.prompt_variables !== undefined) {
           setPromptVariables(result.prompt_variables);
         }
+        if (result.promptList !== undefined) {
+          setPromptList(result.promptList);
+        }
       }
     );
   }, []);
@@ -72,14 +83,12 @@ const useSetting = () => {
     return (
       <Setting
         temperature={temperature}
-        temperature_onChange={temperature_onChange}
         initialPrompt={prompt}
-        prompt_onChange={prompt_onChange}
-        setPrompt={setPrompt}
         initialPomptVariables={promptVariables}
+        promptList={promptList}
       ></Setting>
     );
-  }, [temperature, prompt, promptVariables]);
+  }, [temperature, prompt, promptVariables, promptList]);
 
   useEffect(() => {
     if (renderAsidePanelMainContent === null) return;
